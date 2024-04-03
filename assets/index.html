@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="favicon.png" type="image/png" sizes="128x128">
+    <title>Arroseur 3000</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: #f0ffee;
+            font-family: 'Arial', sans-serif;
+        }
+
+        button {
+            margin: 15px 0;
+            padding: 15px 30px;
+            font-size: 18px;
+            color: #fff; /* White text */
+            background-color: #4CAF50; /* Green background */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s, transform 0.2s; /* Smooth background color change and slight scaling on hover */
+        }
+
+        button:hover {
+            background-color: #45a049; /* Slightly darker green on hover */
+            transform: scale(1.05); /* Slightly increase size on hover */
+        }
+
+        #lastWatered {
+            color: rgba(0, 0, 0, 0.62); /* Dark grey color for text */
+            font-size: 20px;
+            z-index: 1;
+        }
+
+        /* Add a shadow to the button for depth */
+        button:active {
+            box-shadow: 0 0 50px 50px rgba(173, 209, 255, 0.51);
+        }
+
+        #history {
+            color: #4CAF50;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div id="lastWatered">Pas l'info frère</div>
+<button onclick="updateWateringTime()">J'ai arrosé wesh</button>
+<div id="history" onclick="showHistory()">Montrer l'historique</div>
+</body>
+
+<script>
+    let lastWateredTime = parseInt(localStorage.getItem('lastWateredTime'));
+    let historyOpen = false;
+
+    function getRemoteWateredTime() {
+        return fetch('/water')
+            .then(response => response.json())
+            .then(data => {
+                localStorage.setItem('lastWateredTime', (data.timestamp * 1000).toString());
+            });
+    }
+
+    function updateWateringTime() {
+        const now = new Date().getTime();
+        localStorage.setItem('lastWateredTime', now.toString());
+        updateDisplay();
+
+        fetch('/water', {method: 'POST'}).then(() => {
+            if (historyOpen) {
+                return showHistory();
+            }
+        });
+    }
+
+    function showHistory() {
+        historyOpen = true;
+        return fetch('/history')
+            //    new Promise((resolve, reject) => { resolve({json: () => [{timestamp: new Date().getTime()}, {timestamp: new Date().getTime()}, {timestamp: new Date().getTime()}, {timestamp: new Date().getTime()}, {timestamp: new Date().getTime()}]}) }) // For testing
+            .then(response => response.json())
+            .then(data => {
+                let historyHTML = ``;
+                for (let i = 0; i < data.length; i++) {
+                    const date = new Date(data[i].timestamp * 1000);
+                    historyHTML += `${date.toLocaleString()}<br>`;
+                }
+
+                let history = document.getElementById('history');
+                history.innerHTML = historyHTML;
+                history.onclick = hideHistory;
+            });
+    }
+
+    function hideHistory() {
+        historyOpen = false;
+        let history = document.getElementById('history');
+        history.innerHTML = 'Montrer l\'historique';
+        history.onclick = showHistory;
+    }
+
+    function updateDisplay() {
+        const lastWateredTime = localStorage.getItem('lastWateredTime');
+        if (!lastWateredTime) {
+            document.getElementById('lastWatered').innerText = "Pas l'info frère";
+            return;
+        }
+
+        const now = new Date().getTime();
+        let elapsed = Math.floor((now - lastWateredTime) / 1000);
+        const days = Math.floor(elapsed / (3600 * 24));
+        elapsed -= days * 3600 * 24;
+        const hours = Math.floor(elapsed / 3600);
+        elapsed -= hours * 3600;
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+
+        let timeString = "Arrosé il y a ";
+        if (days > 0) timeString += `${days} jour${days > 1 ? 's' : ''}, `;
+        if (hours > 0 || days > 0) timeString += `${hours} heure${hours > 1 ? 's' : ''}, `;
+        if (minutes > 0 || hours > 0 || days > 0) timeString += `${minutes} minute${minutes > 1 ? 's' : ''}, `;
+        timeString += `${seconds} seconde${seconds > 1 ? 's' : ''}`;
+
+        document.getElementById('lastWatered').innerText = timeString;
+    }
+
+    // Initialize display
+    updateDisplay();
+
+    getRemoteWateredTime().then(() => {
+        updateDisplay();
+    });
+
+    // Update the display every second
+    setInterval(updateDisplay, 1000);
+</script>
+</html>
