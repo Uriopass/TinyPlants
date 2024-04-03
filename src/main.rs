@@ -59,7 +59,6 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-#[cfg(debug_assertions)]
 async fn root() -> impl IntoResponse {
     Html(INDEX)
 }
