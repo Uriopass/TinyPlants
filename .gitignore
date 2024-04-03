@@ -19,3 +19,5 @@ Cargo.lock
 /target
 
 *.sh
+db.db
+storage/*
