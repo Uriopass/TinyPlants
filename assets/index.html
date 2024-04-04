@@ -10,8 +10,9 @@
             background-color: #f0ffee;
             background-image: url("cute_plant.png");
             background-repeat: repeat;
-            background-size: 150px;
+            background-size: 270px;
         }
+
         body, html {
             height: 100%;
             margin: 0;
@@ -20,6 +21,17 @@
             align-items: center;
             flex-direction: column;
             font-family: 'Arial', sans-serif;
+        }
+
+        #content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 25px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid #eaeaea;
         }
 
         button {
@@ -57,9 +69,11 @@
     </style>
 </head>
 <body>
-<div id="lastWatered">Pas l'info frère</div>
-<button onclick="updateWateringTime()">J'ai arrosé wesh</button>
-<div id="history" onclick="showHistory()">Montrer l'historique</div>
+<div id="content">
+    <div id="lastWatered">Pas l'info frère</div>
+    <button onclick="updateWateringTime()">J'ai arrosé wesh</button>
+    <div id="history" onclick="showHistory()">Montrer l'historique</div>
+</div>
 </body>
 
 <script>
