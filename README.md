@@ -17,3 +17,7 @@ PORT=8080 ./target/release/tinyplants
 ### Screenshot
 
 ![Screenshot](assets/demo.png)
+
+### License
+
+The cute background image is from © Daniel J Kuzmenka - http://www.redbubble.com/people/fractalkuzy
