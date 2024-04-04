@@ -45,6 +45,7 @@ async fn main() {
         .route("/water", post(water_post))
         .route("/history", get(history_get))
         .route("/favicon.png", get(|| async { include_bytes!("../assets/favicon.png") }))
+        .route("/cute_plant.png", get(|| async { include_bytes!("../assets/cute_plant.png") }))
         .layer(db)
         ;
 
