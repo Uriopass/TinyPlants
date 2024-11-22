@@ -9,9 +9,9 @@ fn get_migrated(conn: &Connection) -> Result<Vec<String>> {
         Err(r2d2_sqlite::rusqlite::Error::SqliteFailure(sqlite_err, msg)) => {
             if sqlite_err.code == ErrorCode::Unknown
                 && msg
-                .as_ref()
-                .map(|v| v.starts_with("no such table"))
-                .unwrap_or(false)
+                    .as_ref()
+                    .map(|v| v.starts_with("no such table"))
+                    .unwrap_or(false)
             {
                 return Ok(vec![]);
             } else {
@@ -21,9 +21,7 @@ fn get_migrated(conn: &Connection) -> Result<Vec<String>> {
         Err(e) => Err(e)?,
     };
     let migrated = stmt.query_map([], |row| row.get("migration"))?;
-    migrated
-        .map(|x| x.map_err(|e| anyhow::Error::from(e)))
-        .collect()
+    migrated.map(|x| x.map_err(anyhow::Error::from)).collect()
 }
 
 /// Runs the migrations contained in the directory. See module documentation for
@@ -42,7 +40,7 @@ pub fn migrate(db: &Database, dir: &Dir<'_>) -> Result<()> {
                 );
             "#,
         )
-            .context("error creating migration table")?;
+        .context("error creating migration table")?;
     }
     let mut files: Vec<_> = dir.files().collect();
     if migrated.len() > files.len() {
@@ -65,7 +63,7 @@ pub fn migrate(db: &Database, dir: &Dir<'_>) -> Result<()> {
             "INSERT INTO sqlx_pg_migrate (migration) VALUES ($1)",
             [&path],
         )
-            .context("error running transaction")?;
+        .context("error running transaction")?;
     }
     tx.commit().context("error commiting transaction")?;
     Ok(())

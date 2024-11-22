@@ -15,6 +15,6 @@ impl Database {
     }
 
     pub fn connection(&self) -> Result<PooledConnection<SqliteConnectionManager>, Error> {
-        Ok(self.pool.get()?)
+        self.pool.get()
     }
 }
