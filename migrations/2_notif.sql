@@ -1,0 +1,1 @@
+ALTER TABLE water ADD COLUMN notif_sent integer default 0;
