@@ -128,7 +128,7 @@ async fn notif_send_thread(db: Extension<Database>) {
         let conn = db.connection().unwrap();
         let (timestamp, notif): (u64, i32) = conn
             .query_row(
-                "SELECT timestamp, notif FROM water ORDER BY timestamp DESC LIMIT 1",
+                "SELECT timestamp, notif_sent FROM water ORDER BY timestamp DESC LIMIT 1",
                 [],
                 |row| Ok((row.get(0)?, row.get(1)?)),
             )
@@ -152,7 +152,7 @@ async fn notif_send_thread(db: Extension<Database>) {
 
             let conn = db.connection().unwrap();
             conn.execute(
-                "UPDATE water SET notif = 1 WHERE timestamp = ?",
+                "UPDATE water SET notif_sent = 1 WHERE timestamp = ?",
                 [timestamp],
             )
             .unwrap();
