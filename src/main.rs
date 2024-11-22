@@ -126,7 +126,7 @@ async fn notif_send_thread(db: Extension<Database>) {
 
     loop {
         let conn = db.connection().unwrap();
-        let (timestamp, notif_sent_at): (u64, u64) = conn
+        let (timestamp, notif_sent_at): (u64, Option<u64>) = conn
             .query_row(
                 "SELECT timestamp, notif_sent_at FROM water ORDER BY timestamp DESC LIMIT 1",
                 [],
@@ -143,31 +143,32 @@ async fn notif_send_thread(db: Extension<Database>) {
                 - 60 * 60 * 24 * 7
         {
             if notif_sent_at
-                < SystemTime::now()
-                    .duration_since(SystemTime::UNIX_EPOCH)
-                    .unwrap()
-                    .as_secs()
-                    - 60 * 60 * 24
-            {
-                continue;
-            }
-
-            if let Err(e) = send_mail(&recipient).await {
-                eprintln!("failed to send mail: {}", e);
-            }
-
-            let conn = db.connection().unwrap();
-            conn.execute(
-                "UPDATE water SET notif_sent_at = ? WHERE timestamp = ?",
-                [
-                    SystemTime::now()
+                .map(|v| {
+                    v < SystemTime::now()
                         .duration_since(SystemTime::UNIX_EPOCH)
                         .unwrap()
-                        .as_secs(),
-                    timestamp,
-                ],
-            )
-            .unwrap();
+                        .as_secs()
+                        - 60 * 60 * 24
+                })
+                .unwrap_or(true)
+            {
+                if let Err(e) = send_mail(&recipient).await {
+                    eprintln!("failed to send mail: {}", e);
+                }
+
+                let conn = db.connection().unwrap();
+                conn.execute(
+                    "UPDATE water SET notif_sent_at = ? WHERE timestamp = ?",
+                    [
+                        SystemTime::now()
+                            .duration_since(SystemTime::UNIX_EPOCH)
+                            .unwrap()
+                            .as_secs(),
+                        timestamp,
+                    ],
+                )
+                .unwrap();
+            }
         }
         tokio::time::sleep(std::time::Duration::from_secs(60)).await;
     }
